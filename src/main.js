@@ -3,6 +3,7 @@ import javascriptLogo from './javascript.svg'
 const viteLogo = '/vite.svg'
 import { setupCounter } from './counter.js'
 import { setupNifty } from './nifty.js'
+import { setupIndices } from './indices.js'
 
 document.querySelector('#app').innerHTML = `
   <div>
@@ -17,6 +18,7 @@ document.querySelector('#app').innerHTML = `
       <button id="counter" type="button"></button>
     </div>
     <div id="nifty"></div>
+    <div id="indices"></div>
     <p class="read-the-docs">
       Click on the Vite logo to learn more
     </p>
@@ -25,3 +27,4 @@ document.querySelector('#app').innerHTML = `
 
 setupCounter(document.querySelector('#counter'))
 setupNifty(document.querySelector('#nifty'))
+setupIndices(document.querySelector('#indices'))

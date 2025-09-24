@@ -31,3 +31,8 @@ vite.svg
 
 # macOS
 *.DS_Store
+
+# Python backend
+backend/.venv/
+backend/__pycache__/
+.vercel
