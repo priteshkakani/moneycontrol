@@ -1,4 +1,5 @@
-const API_BASE = 'http://localhost:8001/api';
+const RUNTIME_BASE = import.meta?.env?.VITE_API_BASE || 'https://moneycontrol-5.onrender.com';
+const API_BASE = `${RUNTIME_BASE.replace(/\/$/, '')}/api`;
 
 export async function fetchQuote(symbol) {
   const res = await fetch(`${API_BASE}/quote/${encodeURIComponent(symbol)}`);
