@@ -7,10 +7,7 @@ import yfinance as yf
 app = FastAPI(title="MoneyControl Backend", version="0.1.0")
 
 # Adjust these origins as needed for local dev and deployments
-origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
+origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
