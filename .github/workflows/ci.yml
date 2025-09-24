@@ -106,3 +106,61 @@ jobs:
           PYTHONPATH: backend
         run: |
           pytest -q backend/tests
+
+  deploy-backend-render:
+    name: Deploy backend to Render
+    runs-on: ubuntu-latest
+    needs: [backend-check, backend-pytest]
+    if: github.event_name == 'push'
+    steps:
+      - name: Trigger Render deploy hook
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL secret is not set. Skipping backend deploy." && exit 0
+          fi
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"
+
+  deploy-frontend-vercel:
+    name: Deploy frontend to Vercel
+    runs-on: ubuntu-latest
+    needs: [frontend-build, frontend-test, deploy-backend-render]
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Pull Vercel environment info
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          vercel pull --yes --environment=production --token "$VERCEL_TOKEN"
+
+      - name: Build frontend with API base from backend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VITE_API_BASE: ${{ secrets.RENDER_BACKEND_URL }}
+        run: |
+          # Provide build-time env var for Vite
+          vercel build --token "$VERCEL_TOKEN" --build-env VITE_API_BASE="$VITE_API_BASE"
+
+      - name: Deploy prebuilt artifacts to production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          vercel deploy --prebuilt --prod --yes --token "$VERCEL_TOKEN"
