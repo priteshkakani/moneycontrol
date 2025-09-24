@@ -49,8 +49,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run unit tests
-        run: npm test
+      - name: Run unit tests with coverage
+        run: npm test -- --coverage
+
+      - name: Upload Vitest coverage (html)
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: frontend-coverage-html
+          path: coverage
+          if-no-files-found: warn
+
+      - name: Upload Vitest coverage (lcov)
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: frontend-coverage-lcov
+          path: coverage/lcov.info
+          if-no-files-found: warn
 
   backend-check:
     name: Backend install & import check
@@ -99,13 +115,29 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
-          pip install pytest
+          pip install pytest pytest-cov
 
-      - name: Run pytest
+      - name: Run pytest with coverage
         env:
           PYTHONPATH: backend
         run: |
-          pytest -q backend/tests
+          pytest -q backend/tests --cov=backend --cov-report=term-missing --cov-report=xml --cov-report=html
+
+      - name: Upload pytest coverage (xml)
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: backend-coverage-xml
+          path: coverage.xml
+          if-no-files-found: warn
+
+      - name: Upload pytest coverage (html)
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: backend-coverage-html
+          path: htmlcov
+          if-no-files-found: warn
 
   deploy-backend-render:
     name: Deploy backend to Render

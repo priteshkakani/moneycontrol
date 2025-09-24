@@ -6,5 +6,11 @@ export default defineConfig({
     globals: true,
     setupFiles: [],
     include: ['src/**/*.{test,spec}.js'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov', 'html'],
+      reportsDirectory: './coverage',
+      exclude: ['**/node_modules/**', '**/dist/**']
+    }
   },
 })
